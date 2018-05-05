@@ -4,16 +4,16 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class Statistics {
-    Lock lock = new ReentrantLock();
-    double sum = 0;
-    double max = 0;
-    double min = Double.MAX_VALUE;
-    long count = 0;
+    private Lock lock = new ReentrantLock();
+    private double sum = 0;
+    private double max = 0;
+    private double min = Double.MAX_VALUE;
+    private long count = 0;
 
     public Statistics() {
     }
 
-    public Statistics(Statistics s) {
+    private Statistics(Statistics s) {
         this.sum = s.sum;
         this.max = s.max;
         this.min = s.min;
@@ -32,7 +32,7 @@ public class Statistics {
         }
     }
 
-    public Statistics getStatistics(){
+    public Statistics getStatistics() {
         try{
             lock.lock();
             return new Statistics(this);

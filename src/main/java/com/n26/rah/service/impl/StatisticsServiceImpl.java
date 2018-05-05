@@ -9,22 +9,21 @@ import com.n26.rah.model.StatisticsResponse;
 import com.n26.rah.service.IStatisticsService;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
-import java.time.Instant;
+import javax.inject.Inject;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.n26.rah.util.Constants.ONE_MINUTE_IN_MS;
-import static com.n26.rah.util.Constants.STATISTICS_CACHE_SIZE;
 
 @Service
 public class StatisticsServiceImpl implements IStatisticsService{
 
-    private StatisticsCache<Long, Statistics> cache;
+    @Inject
+    private final StatisticsCache<Long, Statistics> cache;
 
-    @PostConstruct
-    public void init(){
-        cache = new StatisticsCache<>();
+    @Inject
+    public StatisticsServiceImpl(StatisticsCache<Long, Statistics> cache) {
+        this.cache = cache;
     }
 
     public boolean addStatistics(StatisticsRequest request, long timestamp) {
@@ -53,11 +52,11 @@ public class StatisticsServiceImpl implements IStatisticsService{
     }
 
     public StatisticsResponse getStatistics(long timestamp) {
-        Map<Long, Statistics> copy = cache.entrySet().parallelStream().collect(Collectors.toMap(e -> e.getKey(), e -> new Statistics(e.getValue())));
-        return getStatisticsFromCache(copy, timestamp);
+        Map<Long, Statistics> copy = cache.entrySet().parallelStream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getStatistics()));
+        return getStatisticsFromCacheCopy(copy, timestamp);
     }
 
-    private StatisticsResponse getStatisticsFromCache(Map<Long, Statistics> copy, long timestamp) {
+    private StatisticsResponse getStatisticsFromCacheCopy(Map<Long, Statistics> copy, long timestamp) {
         double sum = 0;
         double avg = 0;
         double max = 0;
@@ -68,12 +67,14 @@ public class StatisticsServiceImpl implements IStatisticsService{
         for (Map.Entry<Long, Statistics> e : copy.entrySet()) {
             Long eKey = e.getKey();
             Long timeFrame = key - eKey;
-            if(timeFrame >= 0 && timeFrame < 60) {
+            if(timeFrame >= 0 && timeFrame < cache.getCapacity()) {
                 Statistics eValue = e.getValue();
-                sum += eValue.getSum();
-                min = min < eValue.getMin() ? min : eValue.getMin();
-                max = max > eValue.getMax() ? max : eValue.getMax();
-                count += eValue.getCount();
+                if(eValue.getCount() > 0) {
+                    sum += eValue.getSum();
+                    min = min < eValue.getMin() ? min : eValue.getMin();
+                    max = max > eValue.getMax() ? max : eValue.getMax();
+                    count += eValue.getCount();
+                }
             }
         }
         if(count == 0) {
@@ -87,7 +88,7 @@ public class StatisticsServiceImpl implements IStatisticsService{
     }
 
     private Long getKeyFromTimestamp(Long timestamp) {
-        return (timestamp * STATISTICS_CACHE_SIZE) / ONE_MINUTE_IN_MS;
+        return (timestamp * cache.getCapacity()) / ONE_MINUTE_IN_MS;
     }
 
     public void clearCache() {
