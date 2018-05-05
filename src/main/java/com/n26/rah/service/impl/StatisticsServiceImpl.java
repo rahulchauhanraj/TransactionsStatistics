@@ -2,7 +2,6 @@ package com.n26.rah.service.impl;
 
 import com.n26.rah.builder.StatisticsResponseBuilder;
 import com.n26.rah.cache.StatisticsCache;
-import com.n26.rah.exception.BadRequestException;
 import com.n26.rah.model.Statistics;
 import com.n26.rah.model.StatisticsRequest;
 import com.n26.rah.model.StatisticsResponse;
@@ -27,9 +26,6 @@ public class StatisticsServiceImpl implements IStatisticsService{
     }
 
     public boolean addStatistics(StatisticsRequest request, long timestamp) {
-        if (request.getAmount() <= 0){
-            throw new BadRequestException("Invalid amount value : " + request.getAmount());
-        }
         long requestTime = request.getTimestamp();
         long delay = timestamp - requestTime;
         if (delay >= ONE_MINUTE_IN_MS) {

@@ -1,8 +1,8 @@
-package com.n26.rah;
+package com.n26.rah.controller;
 
+import com.n26.rah.Application;
 import com.n26.rah.builder.StatisticsRequestBuilder;
 import com.n26.rah.controller.StatisticsController;
-import com.n26.rah.exception.BadRequestException;
 import com.n26.rah.model.StatisticsRequest;
 import com.n26.rah.model.StatisticsResponse;
 import com.n26.rah.service.IStatisticsService;
@@ -42,10 +42,11 @@ public class StatisticsControllerTest {
         Assert.assertEquals(HttpStatus.CREATED, responseEntity.getStatusCode());
     }
 
-    @Test(expected = BadRequestException.class)
-    public void testAddStatistics_withInValidAmount_badRequest(){
+    @Test
+    public void testAddStatistics_withNegativeAmount_created(){
         StatisticsRequest request = StatisticsRequestBuilder.createStatisticsRequest().withAmount(-1.1).withTimestamp(Instant.now().toEpochMilli()).build();
-        controller.addStatistics(request);
+        ResponseEntity responseEntity = controller.addStatistics(request);
+        Assert.assertEquals(HttpStatus.CREATED, responseEntity.getStatusCode());
     }
 
     @Test
