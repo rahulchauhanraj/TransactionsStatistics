@@ -1,5 +1,6 @@
-# TransactionsStatistics
-Track last minutes transaction or hits on the Server.
+# Transactions Statistics
+
+Problem Statement :
 
 We would like to have a restful API for our statistics. The main use case for our API is to
 calculate realtime statistic from the last 60 seconds. There will be two APIs, one of them is
@@ -99,3 +100,40 @@ database)
 ● Endpoints have to execute in constant time and memory (O(1))
 
 ● Please complete the challenge using Java
+
+****************************************************************************************************************************************
+
+Solution : 
+
+Java project which maintains cache of last 60 seconds transactions in a form of seconds or could be millis seconds.
+Each time frame either sec or milli seconds holds all the transactions information happend in that time frame.
+Time frames are calculated based on timestamp. Each time frame can be modified separatly without taking lock but for modifying same time frame object required a lock.
+Liked hashmap is used to get the funtinality of remove eldest entry from cache.
+At any point of time cache is having size, atmost equal to its capacity. Capacity is defined between 60 to 60000. (60 frame of a minute in seconds to 60000 frame in milli seconds).
+
+To compile and build project run : 
+
+    mvn clean install 
+
+To run application use : 
+
+    mvn spring-boot:run
+
+To Get statistics :
+
+    GET http://localhost:8080/transactions
+
+
+To Post statistics :
+
+    POST http://localhost:8080/transactions
+
+    Body : raw type with JSON(application/json)
+
+    {
+      "amount": 12.3,
+      "timestamp": 1525537016490
+    }
+
+
+
