@@ -78,26 +78,27 @@ public class StatisticsServiceTest {
         ExecutorService executorService = Executors.newFixedThreadPool(3);
         int n = 0;
         double amount = 1.0;
-        int count = 50000;
+        int count = 60000;
         long timestamp = Instant.now().toEpochMilli();
         long requestTime = timestamp;
         while(n<count) {
-            if(timestamp - requestTime >= 50000) {
+            // Time frame is managed from 0 to 59, for cache size 60.
+            if(timestamp - requestTime >= 59000) {
                 requestTime = timestamp;
             }
             StatisticsRequest request = StatisticsRequestBuilder.createStatisticsRequest().withAmount(amount).withTimestamp(requestTime).build();
             executorService.submit(() -> service.addStatistics(request, timestamp));
             n++;
             amount++;
-            requestTime -= 10;
+            requestTime -= 1;
         }
 
         executorService.shutdown();
         Thread.sleep(1000);
         StatisticsResponse response = service.getStatistics(timestamp);
         Assert.assertEquals(count, response.getCount());
-        Assert.assertEquals(50000, response.getMax(), 0);
+        Assert.assertEquals(count, response.getMax(), 0);
         Assert.assertEquals(1, response.getMin(), 0);
-        Assert.assertEquals(25000.5, response.getAvg(), 0);
+        Assert.assertEquals(30000.5, response.getAvg(), 0);
     }
 }
