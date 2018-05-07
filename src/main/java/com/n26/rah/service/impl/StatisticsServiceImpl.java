@@ -28,7 +28,7 @@ public class StatisticsServiceImpl implements IStatisticsService{
     public boolean addStatistics(StatisticsRequest request, long timestamp) {
         long requestTime = request.getTimestamp();
         long delay = timestamp - requestTime;
-        if (delay >= ONE_MINUTE_IN_MS) {
+        if (delay < 0 || delay >= ONE_MINUTE_IN_MS) {
             return false;
         } else {
             Long key = getKeyFromTimestamp(requestTime);
